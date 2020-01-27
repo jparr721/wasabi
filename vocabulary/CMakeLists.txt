@@ -1,4 +1,4 @@
-project(vectorizer)
+project(vocabulary)
 file(GLOB SOURCES "src/*.cc")
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})

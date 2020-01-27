@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
-project(wasabit LANGUAGES CXX CUDA)
+project(wasabi LANGUAGES CXX CUDA)
 
 include(CheckLanguage)
 check_language(CUDA)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin})
+set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -31,10 +31,13 @@ foreach(p LIB BIN INCLUDE CMAKE)
   endif()
 endforeach()
 
+find_package(Boost 1.69 COMPONENTS unit_test_framework REQUIRED)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+
 include_directories(
   "${PROJECT_SOURCE_DIR}"
   "${PROJECT_BINARY_DIR}"
   ${Boost_INCLUDE_DIRS}
 )
 
-add_subdirectory(vectorizer)
+add_subdirectory(vocabulary)
