@@ -42,10 +42,3 @@ include_directories(
 
 add_subdirectory(vocabulary)
 add_subdirectory(corpus)
-
-add_executable(
-  corpus_test
-  corpus/tests/corpus_test.cc
-)
-
-target_link_libraries(corpus_test LINK_PUBLIC ${Boost_LIBRARIES})

@@ -1,7 +1,8 @@
 project(corpus)
-file(GLOB SOURCES "src/*.cc")
 
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
+add_library(${PROJECT_NAME} SHARED
+  src/corpus.cc
+)
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -20,3 +21,14 @@ install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Config
 install(DIRECTORY include/ DESTINATION "${INSTALL_INCLUDE_DIR}")
 install(EXPORT ${PROJECT_NAME}Config DESTINATION share/${PROJECT_NAME}/cmake)
 export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
+
+add_executable(
+  corpus_test
+  tests/corpus_test.cc
+)
+
+target_link_libraries(
+  corpus_test
+  LINK_PUBLIC ${Boost_LIBRARIES}
+  ${PROJECT_NAME}
+)
