@@ -16,7 +16,7 @@ set(INSTALL_INCLUDE_DIR include CACHE PATH "Install directory for header files")
 if(WIN32 AND NOT CYGWIN)
   set(DEF_INSTALL_CMAKE_DIR CMake)
 else()
-  set(DEF_INSTALL_CMAKE_DIR lib/CMake/cerebrum)
+  set(DEF_INSTALL_CMAKE_DIR lib/CMake/wasabi)
 endif()
 
 if(NOT DEFINED CMAKE_CUDA_STANDARD)

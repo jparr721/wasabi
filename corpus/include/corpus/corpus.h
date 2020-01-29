@@ -11,15 +11,15 @@ class Corpus {
   Corpus(const std::string& file_path) : file_path_(file_path){};
 
   //==========================================================
-  inline bool file_exists(const std::string& name) {
+  void Ingest();
+
+  //==========================================================
+  inline bool file_exists(const std::string& name) const {
     struct stat buffer;
     return (stat(name.c_str(), &buffer) == 0);
   }
 
-  std::string corpus_blob() { return corpus_blob_; }
-
-  //==========================================================
-  void Ingest();
+  const std::string corpus_blob() const { return corpus_blob_; }
 
  private:
   const std::string file_path_;
