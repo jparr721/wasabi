@@ -42,3 +42,4 @@ include_directories(
 
 add_subdirectory(vocabulary)
 add_subdirectory(corpus)
+add_subdirectory(tokenizer)
