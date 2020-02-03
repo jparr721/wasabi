@@ -37,13 +37,13 @@ BOOST_AUTO_TEST_CASE(SentnceTokenize) {
   c->Ingest();
 
   auto t =
-      std::make_shared<wasabi::Tokenizer>(c, wasabi::TokenizerType::sentence);
+      std::make_shared<wasabi::Tokenizer>(c, wasabi::TokenizerType::sentences);
 
   t->Tokenize();
 
-  auto output = t->toknized();
+  auto output = t->tokenized();
 
-  for (const auto v : output) {
+  for (const auto& v : output) {
     std::cout << v << ", ";
   }
 

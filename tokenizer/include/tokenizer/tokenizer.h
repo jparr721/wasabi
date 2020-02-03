@@ -10,7 +10,7 @@ namespace wasabi {
 enum class TokenizerType { words, sentences };
 class Tokenizer {
  public:
-  Tokenizer(std::shared_ptr<Corpus> raw_text, TokenizerType type)
+  Tokenizer(const std::shared_ptr<Corpus>& raw_text, TokenizerType type)
       : raw_text_(raw_text), type_(type){};
 
   //==========================================================

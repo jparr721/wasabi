@@ -1,8 +1,8 @@
-project(tokenizer)
+
+project(utils)
 
 add_library(${PROJECT_NAME} SHARED
-  src/tokenizer.cc
-  src/tokenizer.cu
+  src/files.cc
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -19,22 +19,6 @@ install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Config
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-target_link_libraries(${PROJECT_NAME}
-  corpus
-)
-
 install(DIRECTORY include/ DESTINATION "${INSTALL_INCLUDE_DIR}")
 install(EXPORT ${PROJECT_NAME}Config DESTINATION share/${PROJECT_NAME}/cmake)
 export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
-
-add_executable(
-  tokenizer_test
-  tests/tokenizer_test.cc
-)
-
-target_link_libraries(
-  tokenizer_test
-  LINK_PUBLIC ${Boost_LIBRARIES}
-  ${PROJECT_NAME}
-  corpus
-)

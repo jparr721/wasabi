@@ -1,7 +1,7 @@
 #include <vocabulary/vocabulary.h>
 
 namespace wasabi {
-void Vocabulary::AddToken(std::string token) {
+void Vocabulary::AddToken(const std::string& token) {
   const auto token_exists = token_to_index_.find(token);
 
   if (token_exists == token_to_index_.end()) {
@@ -11,7 +11,7 @@ void Vocabulary::AddToken(std::string token) {
   }
 }
 
-void Vocabulary::BulkAddToken(std::vector<std::string> tokens) {
+void Vocabulary::BulkAddToken(const std::vector<std::string>& tokens) {
   for (const auto t : tokens) {
     AddToken(t);
   }
@@ -27,7 +27,7 @@ std::optional<std::string> Vocabulary::LookupToken(int index) {
   return token->second;
 }
 
-std::optional<int> Vocabulary::LookupIndex(std::string token) {
+std::optional<int> Vocabulary::LookupIndex(const std::string& token) {
   const auto index = token_to_index_.find(token);
 
   if (index == token_to_index_.end()) {

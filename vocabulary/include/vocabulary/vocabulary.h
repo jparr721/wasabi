@@ -29,12 +29,12 @@ class Vocabulary {
   }
 
   //==========================================================
-  void AddToken(std::string token);
-  void BulkAddToken(std::vector<std::string> tokens);
+  void AddToken(const std::string &token);
+  void BulkAddToken(const std::vector<std::string> &tokens);
 
   //==========================================================
   std::optional<std::string> LookupToken(int index);
-  std::optional<int> LookupIndex(std::string token);
+  std::optional<int> LookupIndex(const std::string &token);
 
   //==========================================================
   /** Overrides **/
