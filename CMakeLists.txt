@@ -12,6 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(INSTALL_LIB_DIR lib CACHE PATH "Install directory for library code")
 set(INSTALL_BIN_DIR CACHE PATH "Install directory for executables")
 set(INSTALL_INCLUDE_DIR include CACHE PATH "Install directory for header files")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(WIN32 AND NOT CYGWIN)
   set(DEF_INSTALL_CMAKE_DIR CMake)

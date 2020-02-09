@@ -2,7 +2,7 @@ project(tokenizer)
 
 add_library(${PROJECT_NAME} SHARED
   src/tokenizer.cc
-  src/tokenizer.cu
+  src/retreival.cc
 )
 
 target_include_directories(${PROJECT_NAME}
