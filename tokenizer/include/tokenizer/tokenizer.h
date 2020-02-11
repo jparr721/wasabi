@@ -4,6 +4,8 @@
 
 #include <array>
 #include <cassert>
+#include <experimental/optional>
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -12,6 +14,10 @@
 namespace wasabi {
 enum class TokenizerType { words, sentences };
 enum class StemmerType { porter, snowball };
+using rule_list = std::vector<
+    std::tuple<const std::string&, const std::string&,
+               std::experimental::optional<std::function<bool(std::string&)>>>>;
+
 class Tokenizer {
  public:
   Tokenizer(const std::shared_ptr<Corpus>& raw_text, TokenizerType type)
@@ -85,10 +91,17 @@ class Tokenizer {
   void TokenizeToSentences();
 
   //==========================================================
-  void PorterStemmer();
   void SnowballStemmer();
+
+  //==========================================================
+  // Porter Stemmer functions
+  void PorterStemmer();
   void ReplaceSuffix(std::string& word, const std::string& suffix,
-                     const std::string& replacement) {}
+                     const std::string& replacement);
+  void ApplyRuleToList(std::string& word, const rule_list& rules);
+
+  // Step-Functions
+  void Step1a(std::string& word);
 
   int MeasureStem(const std::string& stem);
 

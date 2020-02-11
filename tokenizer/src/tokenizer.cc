@@ -225,4 +225,84 @@ bool Tokenizer::EndsCVC(const std::string& word) {
          (word.size() == 2 && !this->IsConsonant(word, 0) &&
           this->IsConsonant(word, 1));
 }
+
+void Tokenizer::ReplaceSuffix(std::string& word, const std::string& suffix,
+                              const std::string& replacement) {
+  assert(StringEndsWith(word, suffix));
+
+  if (suffix == "") {
+    word += replacement;
+  } else {
+    word = word.substr(word.size() - suffix.size()) + replacement;
+  }
+}
+
+/**
+ * Applies the first applicable suffix-removal rule to the word
+ *
+ *  Takes a word and a list of suffix-removal rules represented as
+ *  3-tuples, with the first element being the suffix to remove,
+ *  the second element being the string to replace it with, and the
+ *  final element being the condition for the rule to be applicable,
+ *  or None if the rule is unconditional.
+ */
+void Tokenizer::ApplyRuleToList(std::string& word, const rule_list& rules) {
+  for (const auto rule : rules) {
+    const std::string suffix = std::get<0>(rule);
+    const std::string replacement = std::get<1>(rule);
+    const auto condition = std::get<2>(rule).value_or(nullptr);
+
+    if (suffix == "d" && this->EndsDoubleConsonant(word)) {
+      const auto stem = word.substr(0, word.size() - 2);
+
+      if (condition == nullptr || condition(word)) {
+        word = stem + replacement;
+        return;
+      } else {
+        return;
+      }
+    }
+
+    if (this->StringEndsWith(word, suffix)) {
+      this->ReplaceSuffix(word, suffix, "");
+      if (condition == nullptr || condition(word)) {
+        word += replacement;
+        return;
+      } else {
+        return;
+      }
+    }
+  }
+}
+
+/**
+ * Implements Step 1a from "An algorithm for suffix stripping"
+ *  From the paper:
+ *      SSES -> SS                         caresses  ->  caress
+ *      IES  -> I                          ponies    ->  poni
+ *                                         ties      ->  ti
+ *      SS   -> SS                         caress    ->  caress
+ *      S    ->                            cats      ->  cat
+ **/
+void Tokenizer::Step1a(std::string& word) {
+  if (this->StringEndsWith(word, "ies")) {
+    this->ReplaceSuffix(word, "ies", "ie");
+    return;
+  }
+  std::tuple<const std::string&, const std::string&,
+             std::experimental::optional<std::function<bool(std::string&)>>>
+      value =
+          std::make_tuple(std::string("sses"), std::string("ss"), std::nullopt);
+
+  const rule_list rules{
+      std::make_tuple(std::string("sses"), std::string("ss"),
+                      [](std::string&) -> bool { return true; }),
+  };
+
+  this->ApplyRuleToList(word, rules);
+}
 }  // namespace wasabi
+
+// std::make_tuple("ies", "i", std::std::nullopt),
+// std::make_tuple("ss", "ss", std::nullopt),
+// std::make_tuple("s", "", std::nullopt),

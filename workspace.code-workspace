@@ -4,5 +4,10 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"optional": "cpp",
+			"functional": "cpp"
+		}
+	}
 }
