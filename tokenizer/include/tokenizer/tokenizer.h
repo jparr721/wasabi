@@ -14,9 +14,9 @@
 namespace wasabi {
 enum class TokenizerType { words, sentences };
 enum class StemmerType { porter, snowball };
-using rule_list = std::vector<
-    std::tuple<const std::string&, const std::string&,
-               std::experimental::optional<std::function<bool(std::string&)>>>>;
+using rule = std::tuple<const std::string&, const std::string&,
+                        std::function<bool(std::string&)>>;
+using rule_list = std::vector<rule>;
 
 class Tokenizer {
  public:

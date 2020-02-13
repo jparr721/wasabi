@@ -250,7 +250,7 @@ void Tokenizer::ApplyRuleToList(std::string& word, const rule_list& rules) {
   for (const auto rule : rules) {
     const std::string suffix = std::get<0>(rule);
     const std::string replacement = std::get<1>(rule);
-    const auto condition = std::get<2>(rule).value_or(nullptr);
+    const auto condition = std::get<2>(rule);
 
     if (suffix == "d" && this->EndsDoubleConsonant(word)) {
       const auto stem = word.substr(0, word.size() - 2);
@@ -289,15 +289,9 @@ void Tokenizer::Step1a(std::string& word) {
     this->ReplaceSuffix(word, "ies", "ie");
     return;
   }
-  std::tuple<const std::string&, const std::string&,
-             std::experimental::optional<std::function<bool(std::string&)>>>
-      value =
-          std::make_tuple(std::string("sses"), std::string("ss"), std::nullopt);
+  rule value = std::make_tuple("sses", "ss", nullptr);
 
-  const rule_list rules{
-      std::make_tuple(std::string("sses"), std::string("ss"),
-                      [](std::string&) -> bool { return true; }),
-  };
+  const rule_list rules{value};
 
   this->ApplyRuleToList(word, rules);
 }
