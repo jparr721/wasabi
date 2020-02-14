@@ -15,7 +15,7 @@ namespace wasabi {
 enum class TokenizerType { words, sentences };
 enum class StemmerType { porter, snowball };
 using rule = std::tuple<const std::string&, const std::string&,
-                        std::function<bool(std::string&)>>;
+                        std::function<bool(const std::string&)>>;
 using rule_list = std::vector<rule>;
 
 class Tokenizer {
@@ -95,13 +95,20 @@ class Tokenizer {
 
   //==========================================================
   // Porter Stemmer functions
-  void PorterStemmer();
+  void PorterStemmer(std::string& word);
   void ReplaceSuffix(std::string& word, const std::string& suffix,
                      const std::string& replacement);
   void ApplyRuleToList(std::string& word, const rule_list& rules);
 
   // Step-Functions
   void Step1a(std::string& word);
+  void Step1b(std::string& word);
+  void Step1c(std::string& word);
+  void Step2(std::string& word);
+  void Step3(std::string& word);
+  void Step4(std::string& word);
+  void Step5a(std::string& word);
+  void Step5b(std::string& word);
 
   int MeasureStem(const std::string& stem);
 

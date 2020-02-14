@@ -1,5 +1,6 @@
 #include <tokenizer/tokenizer.h>
 
+#include <algorithm>
 #include <iterator>
 #include <sstream>
 
@@ -7,8 +8,8 @@ namespace wasabi {
 
 //==========================================================
 void Tokenizer::AssertBuildProcedure() const {
-  assert(this->tokenized_);
-  assert(!this->stemmed_);
+  assert(tokenized_);
+  assert(!stemmed_);
 }
 
 bool Tokenizer::StringEndsWith(const std::string& word,
@@ -39,10 +40,10 @@ bool Tokenizer::StringStartsWith(const std::string& word,
 
 //==========================================================
 void Tokenizer::Tokenize() {
-  if (this->type_ == TokenizerType::words) {
-    this->TokenizeToWords();
-  } else if (this->type_ == TokenizerType::sentences) {
-    this->TokenizeToSentences();
+  if (type_ == TokenizerType::words) {
+    TokenizeToWords();
+  } else if (type_ == TokenizerType::sentences) {
+    TokenizeToSentences();
   }
 }
 
@@ -52,13 +53,13 @@ void Tokenizer::TokenizeToWords() {
   std::vector tok(std::istream_iterator<std::string>{iss},
                   std::istream_iterator<std::string>());
 
-  this->tokens_ = tok;
-  this->tokenized_ = true;
+  tokens_ = tok;
+  tokenized_ = true;
 }
 
 void Tokenizer::TokenizeToSentences() {
   std::string sequence = "";
-  const std::string unrefined_text = this->raw_text_->corpus_blob();
+  const std::string unrefined_text = raw_text_->corpus_blob();
   for (size_t i = 0u; i < unrefined_text.length(); ++i) {
     const char c = unrefined_text[i];
 
@@ -71,11 +72,11 @@ void Tokenizer::TokenizeToSentences() {
 
       // Otherwise, add period, and cut string
       sequence += c;
-      this->tokens_.push_back(sequence);
+      tokens_.push_back(sequence);
       sequence = "";
     } else if (c == '\n') {
       sequence += c;
-      this->tokens_.push_back(sequence);
+      tokens_.push_back(sequence);
       sequence = "";
     } else {
       sequence += c;
@@ -84,20 +85,30 @@ void Tokenizer::TokenizeToSentences() {
 }
 
 //==========================================================
-void Tokenizer::Stem(const StemmerType stemmer_type) {
-  if (stemmer_type == StemmerType::porter) {
-    this->PorterStemmer();
-  } else if (stemmer_type == StemmerType::snowball) {
-    this->SnowballStemmer();
+void Tokenizer::PorterStemmer(std::string& word) {
+  AssertBuildProcedure();
+
+  std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+
+  const auto irregular_form_found = irregular_forms.find(word);
+
+  if (irregular_form_found != irregular_forms.end()) {
+    word = irregular_form_found->second[0];
+    return;
   }
+
+  Step1a(word);
+  Step1b(word);
+  Step1c(word);
+  Step2(word);
+  Step3(word);
+  Step4(word);
+  Step5a(word);
+  Step5b(word);
 }
 
-void Tokenizer::SnowballStemmer() { this->AssertBuildProcedure(); }
-
-void Tokenizer::PorterStemmer() { this->AssertBuildProcedure(); }
-
 const std::array<std::string, 127> Tokenizer::stopwords() const {
-  const std::array<std::string, this->stopwords_count> stop{
+  const std::array<std::string, stopwords_count> stop{
       "ourselves",  "hers",    "between", "yourself", "but",        "again",
       "there",      "about",   "once",    "during",   "out",        "very",
       "having",     "with",    "they",    "own",      "an",         "be",
@@ -176,7 +187,7 @@ bool Tokenizer::IsConsonant(const std::string& word, int index) {
 int Tokenizer::MeasureStem(const std::string& stem) {
   std::ostringstream cv_sequence;
   for (size_t i = 0; i < stem.size(); ++i) {
-    if (this->IsConsonant(stem, i)) {
+    if (IsConsonant(stem, i)) {
       cv_sequence << "c";
     } else {
       cv_sequence << "v";
@@ -187,12 +198,12 @@ int Tokenizer::MeasureStem(const std::string& stem) {
 }
 
 bool Tokenizer::HasPositiveMeasure(const std::string& stem) {
-  return this->MeasureStem(stem) > 0;
+  return MeasureStem(stem) > 0;
 }
 
 bool Tokenizer::ContainsVowel(const std::string& stem) {
   for (size_t i = 0; i < stem.size(); ++i) {
-    if (!this->IsConsonant(stem, i)) {
+    if (!IsConsonant(stem, i)) {
       return true;
     }
   }
@@ -207,7 +218,7 @@ bool Tokenizer::ContainsVowel(const std::string& stem) {
 bool Tokenizer::EndsDoubleConsonant(const std::string& word) {
   const int end = word.at(word.size() - 1);
   return (word.size() >= 2 && word.at(end) == word.at(end - 1) &&
-          this->IsConsonant(word, end));
+          IsConsonant(word, end));
 }
 
 /**
@@ -219,11 +230,10 @@ bool Tokenizer::EndsDoubleConsonant(const std::string& word) {
 bool Tokenizer::EndsCVC(const std::string& word) {
   const int end = word.at(word.size() - 1);
   constexpr static std::array<const char, 3> wxy{'w', 'x', 'y'};
-  return (word.size() >= 3 && this->IsConsonant(word, end - 2) &&
-          !this->IsConsonant(word, end - 1) && this->IsConsonant(word, end) &&
+  return (word.size() >= 3 && IsConsonant(word, end - 2) &&
+          !IsConsonant(word, end - 1) && IsConsonant(word, end) &&
           !is_in(wxy.begin(), wxy.end(), word.at(end))) ||
-         (word.size() == 2 && !this->IsConsonant(word, 0) &&
-          this->IsConsonant(word, 1));
+         (word.size() == 2 && !IsConsonant(word, 0) && IsConsonant(word, 1));
 }
 
 void Tokenizer::ReplaceSuffix(std::string& word, const std::string& suffix,
@@ -252,7 +262,7 @@ void Tokenizer::ApplyRuleToList(std::string& word, const rule_list& rules) {
     const std::string replacement = std::get<1>(rule);
     const auto condition = std::get<2>(rule);
 
-    if (suffix == "d" && this->EndsDoubleConsonant(word)) {
+    if (suffix == "d" && EndsDoubleConsonant(word)) {
       const auto stem = word.substr(0, word.size() - 2);
 
       if (condition == nullptr || condition(word)) {
@@ -263,8 +273,8 @@ void Tokenizer::ApplyRuleToList(std::string& word, const rule_list& rules) {
       }
     }
 
-    if (this->StringEndsWith(word, suffix)) {
-      this->ReplaceSuffix(word, suffix, "");
+    if (StringEndsWith(word, suffix)) {
+      ReplaceSuffix(word, suffix, "");
       if (condition == nullptr || condition(word)) {
         word += replacement;
         return;
@@ -285,18 +295,447 @@ void Tokenizer::ApplyRuleToList(std::string& word, const rule_list& rules) {
  *      S    ->                            cats      ->  cat
  **/
 void Tokenizer::Step1a(std::string& word) {
-  if (this->StringEndsWith(word, "ies")) {
-    this->ReplaceSuffix(word, "ies", "ie");
+  if (StringEndsWith(word, "ies")) {
+    ReplaceSuffix(word, "ies", "ie");
     return;
   }
-  rule value = std::make_tuple("sses", "ss", nullptr);
 
-  const rule_list rules{value};
+  const rule_list rules{
+      std::make_tuple("sses", "ss", nullptr),  // SSES -> SS
+      std::make_tuple("ies", "i", nullptr),    // IES -> i
+      std::make_tuple("ss", "ss", nullptr),    // SS -> SS
+      std::make_tuple("s", "", nullptr),       // S -> ""
+  };
 
-  this->ApplyRuleToList(word, rules);
+  ApplyRuleToList(word, rules);
+}
+
+/**
+ * Implements Step 1b from "An algorithm for suffix stripping"
+ *   From the paper:
+ *       (m>0) EED -> EE                    feed      ->  feed
+ *                                          agreed    ->  agree
+ *       (*v*) ED  ->                       plastered ->  plaster
+ *                                          bled      ->  bled
+ *       (*v*) ING ->                       motoring  ->  motor
+ *                                          sing      ->  sing
+ *   If the second or third of the rules in Step 1b is successful,
+ *   the following is done:
+ *       AT -> ATE                       conflat(ed)  ->  conflate
+ *       BL -> BLE                       troubl(ed)   ->  trouble
+ *       IZ -> IZE                       siz(ed)      ->  size
+ *       (*d and not (*L or *S or *Z))
+ *          -> single letter
+ *                                       hopp(ing)    ->  hop
+ *                                       tann(ed)     ->  tan
+ *                                       fall(ing)    ->  fall
+ *                                       hiss(ing)    ->  hiss
+ *                                       fizz(ed)     ->  fizz
+ *       (m=1 and *o) -> E               fail(ing)    ->  fail
+ *                                       fil(ing)     ->  file
+ *   The rule to map to a single letter causes the removal of one of
+ *   the double letter pair. The -E is put back on -AT, -BL and -IZ,
+ *   so that the suffixes -ATE, -BLE and -IZE can be recognised
+ *   later. This E may be removed in step 4.
+ */
+void Tokenizer::Step1b(std::string& word) {
+  if (StringEndsWith(word, "ied")) {
+    if (word.size() == 4) {
+      ReplaceSuffix(word, "ied", "ie");
+    } else {
+      ReplaceSuffix(word, "ied", "i");
+    }
+  }
+
+  // (m > 0) EED -> EE
+  if (StringEndsWith(word, "eed")) {
+    ReplaceSuffix(word, "eed", "");
+    if (MeasureStem(word) > 0) {
+      word += "ee";
+    }
+  }
+
+  bool rule_2_or_3_succeeded = false;
+
+  if (StringEndsWith(word, "ed")) {
+    ReplaceSuffix(word, "ed", "");
+
+    if (ContainsVowel(word)) {
+      rule_2_or_3_succeeded = true;
+    }
+  }
+
+  if (StringEndsWith(word, "ing")) {
+    ReplaceSuffix(word, "ing", "");
+
+    if (ContainsVowel(word)) {
+      rule_2_or_3_succeeded = true;
+    }
+  }
+
+  if (!rule_2_or_3_succeeded) {
+    return;
+  }
+
+  const rule_list rules{
+      std::make_tuple("at", "ate", nullptr),  // AT -> ATE
+      std::make_tuple("bl", "ble", nullptr),  // BL -> BLE
+      std::make_tuple("iz", "ize", nullptr),  // IZ -> IZE
+      // (*d and not (*L or *S or *Z))
+      // -> Single Letter
+      std::make_tuple("*d", std::string(1, word.at(word.size() - 1)),
+                      [](const std::string& stem) -> bool {
+                        const char last = stem.at(stem.size() - 1);
+                        return last != 'l' && last != 's' && last != 'z';
+                      }),
+      // (m = 1 and *o) -> E
+      std::make_tuple("", "e",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) == 1 && EndsCVC(stem);
+                      }),
+  };
+
+  ApplyRuleToList(word, rules);
+}
+
+/**
+ * Implements Step 1c from "An algorithm for suffix stripping"
+ *From the paper:
+ *Step 1c
+ *(*v*) Y -> I                    happy        ->  happi
+ *                                sky          ->  sky
+ */
+void Tokenizer::Step1c(std::string& word) {
+  ApplyRuleToList(word, std::vector<rule>{std::make_tuple(
+                            "y", "y", [this](const std::string& stem) -> bool {
+                              return stem.size() > 1 and
+                                     IsConsonant(stem, stem.size() - 1);
+                            })});
+}
+
+/**
+ * Implements Step 2 from "An algorithm for suffix stripping"
+ *From the paper:
+ *Step 2
+ *    (m>0) ATIONAL ->  ATE       relational     ->  relate
+ *    (m>0) TIONAL  ->  TION      conditional    ->  condition
+ *                                rational       ->  rational
+ *    (m>0) ENCI    ->  ENCE      valenci        ->  valence
+ *    (m>0) ANCI    ->  ANCE      hesitanci      ->  hesitance
+ *    (m>0) IZER    ->  IZE       digitizer      ->  digitize
+ *    (m>0) ABLI    ->  ABLE      conformabli    ->  conformable
+ *    (m>0) ALLI    ->  AL        radicalli      ->  radical
+ *    (m>0) ENTLI   ->  ENT       differentli    ->  different
+ *    (m>0) ELI     ->  E         vileli        - >  vile
+ *    (m>0) OUSLI   ->  OUS       analogousli    ->  analogous
+ *    (m>0) IZATION ->  IZE       vietnamization ->  vietnamize
+ *    (m>0) ATION   ->  ATE       predication    ->  predicate
+ *    (m>0) ATOR    ->  ATE       operator       ->  operate
+ *    (m>0) ALISM   ->  AL        feudalism      ->  feudal
+ *    (m>0) IVENESS ->  IVE       decisiveness   ->  decisive
+ *    (m>0) FULNESS ->  FUL       hopefulness    ->  hopeful
+ *    (m>0) OUSNESS ->  OUS       callousness    ->  callous
+ *    (m>0) ALITI   ->  AL        formaliti      ->  formal
+ *    (m>0) IVITI   ->  IVE       sensitiviti    ->  sensitive
+ *    (m>0) BILITI  ->  BLE       sensibiliti    ->  sensible
+ */
+void Tokenizer::Step2(std::string& word) {
+  std::string copy = word;
+  ReplaceSuffix(copy, "alli", "");
+  if (StringEndsWith(word, "alli") && HasPositiveMeasure(copy)) {
+    ReplaceSuffix(word, "alli", "al");
+    return Step2(word);
+  }
+
+  const rule_list rules{
+      std::make_tuple("ational", "ate",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("tional", "tion",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("enci", "ence",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("anci", "ance",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("izer", "ize",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("bli", "ble",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("alli", "al",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("entli", "ent",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("eli", "e",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("ousli", "ous",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("ization", "ize",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("ation", "ate",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("ator", "ate",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("alism", "al",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("iveness", "ive",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("fulness", "ful",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("ousness", "ous",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("aliti", "al",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("iviti", "ive",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("biliti", "ble",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("fulli", "ful",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("logi", "log",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+  };
+
+  ApplyRuleToList(word, rules);
+}
+
+/**
+ * Implements Step 3 from "An algorithm for suffix stripping"
+ *From the paper:
+ *Step 3
+ *    (m>0) ICATE ->  IC              triplicate     ->  triplic
+ *    (m>0) ATIVE ->                  formative      ->  form
+ *    (m>0) ALIZE ->  AL              formalize      ->  formal
+ *    (m>0) ICITI ->  IC              electriciti    ->  electric
+ *    (m>0) ICAL  ->  IC              electrical     ->  electric
+ *    (m>0) FUL   ->                  hopeful        ->  hope
+ *    (m>0) NESS  ->                  goodness       ->  good
+ */
+void Tokenizer::Step3(std::string& word) {
+  const rule_list rules{
+      std::make_tuple("icate", "ic",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("ative", "",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("alize", "al",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("iciti", "ic",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("ical", "ic",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("ful", "",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+      std::make_tuple("ness", "",
+                      [this](const std::string& stem) -> bool {
+                        return HasPositiveMeasure(stem);
+                      }),
+  };
+
+  ApplyRuleToList(word, rules);
+}
+
+/**
+ * Implements Step 4 from "An algorithm for suffix stripping"
+ *Step 4
+ *    (m>1) AL    ->                  revival        ->  reviv
+ *    (m>1) ANCE  ->                  allowance      ->  allow
+ *    (m>1) ENCE  ->                  inference      ->  infer
+ *    (m>1) ER    ->                  airliner       ->  airlin
+ *    (m>1) IC    ->                  gyroscopic     ->  gyroscop
+ *    (m>1) ABLE  ->                  adjustable     ->  adjust
+ *    (m>1) IBLE  ->                  defensible     ->  defens
+ *    (m>1) ANT   ->                  irritant       ->  irrit
+ *    (m>1) EMENT ->                  replacement    ->  replac
+ *    (m>1) MENT  ->                  adjustment     ->  adjust
+ *    (m>1) ENT   ->                  dependent      ->  depend
+ *    (m>1 and (*S or *T)) ION ->     adoption       ->  adopt
+ *    (m>1) OU    ->                  homologou      ->  homolog
+ *    (m>1) ISM   ->                  communism      ->  commun
+ *    (m>1) ATE   ->                  activate       ->  activ
+ *    (m>1) ITI   ->                  angulariti     ->  angular
+ *    (m>1) OUS   ->                  homologous     ->  homolog
+ *    (m>1) IVE   ->                  effective      ->  effect
+ *    (m>1) IZE   ->                  bowdlerize     ->  bowdler
+ *The suffixes are now removed. All that remains is a little
+ *tidying up.
+ */
+void Tokenizer::Step4(std::string& word) {
+  const rule_list rules{
+      std::make_tuple("al", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ance", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ence", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("er", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ic", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("able", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ible", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ant", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ement", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ment", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ent", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      // ( m > 1 and (*S or *T)) ION -> ""
+      std::make_tuple("ion", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1 &&
+                               (stem.at(stem.size() - 1) == 's' ||
+                                stem.at(stem.size() - 1) == 't');
+                      }),
+      std::make_tuple("ou", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ism", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ate", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("iti", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ous", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ive", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+      std::make_tuple("ize", "",
+                      [this](const std::string& stem) -> bool {
+                        return MeasureStem(stem) > 1;
+                      }),
+  };
+
+  ApplyRuleToList(word, rules);
+}
+
+/**
+ * Implements Step 5a from "An algorithm for suffix stripping"
+ *From the paper:
+ *Step 5a
+ *    (m>1) E     ->                  probate        ->  probat
+ *                                    rate           ->  rate
+ *    (m=1 and not *o) E ->           cease          ->  ceas
+ */
+void Tokenizer::Step5a(std::string& word) {
+  std::string copy = word;
+  if (StringEndsWith(copy, "e")) {
+    ReplaceSuffix(copy, "e", "");
+
+    if (MeasureStem(copy) > 1) {
+      word = copy;
+    }
+
+    if (MeasureStem(copy) == 1 && !EndsCVC(copy)) {
+      word = copy;
+    }
+  }
+}
+
+/**
+ * Implements Step 5a from "An algorithm for suffix stripping"
+ *From the paper:
+ *Step 5b
+ *    (m > 1 and *d and *L) -> single letter
+ *                            controll       ->  control
+ *                            roll           ->  roll
+ */
+void Tokenizer::Step5b(std::string& word) {
+  ApplyRuleToList(word, std::vector<rule>{std::make_tuple(
+                            "ll", "l", [this](const std::string& stem) -> bool {
+                              const std::string sub =
+                                  stem.substr(0, stem.size() - 1);
+                              return MeasureStem(sub) > 1;
+                            })});
 }
 }  // namespace wasabi
-
-// std::make_tuple("ies", "i", std::std::nullopt),
-// std::make_tuple("ss", "ss", std::nullopt),
-// std::make_tuple("s", "", std::nullopt),
