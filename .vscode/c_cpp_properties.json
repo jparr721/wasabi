@@ -5,7 +5,8 @@
             "compileCommands": "${workspaceFolder}/build/compile_commands.json",
             "includePath": [
                 "${workspaceFolder}/tokenizer/include/tokenizer/tokenizer.h",
-                "${workspaceFolder}/tokenizer/include/tokenizer/retreival.h",
+                "${workspaceFolder}/retreival/include/retreival/base_retreiver.h",
+                "${workspaceFolder}/predictors/include/predictors/base_predictor.h",
                 "${workspaceFolder}/corpus/include/corpus/corpus.h",
                 "${workspaceFolder}"
             ],

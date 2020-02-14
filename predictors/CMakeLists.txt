@@ -1,7 +1,7 @@
-project(tokenizer)
+project(predictor)
 
 add_library(${PROJECT_NAME} SHARED
-  src/tokenizer.cc
+  src/ngram.cc
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -19,7 +19,7 @@ install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Config
 )
 
 target_link_libraries(${PROJECT_NAME}
-  corpus
+  tokenizer
 )
 
 install(DIRECTORY include/ DESTINATION "${INSTALL_INCLUDE_DIR}")
@@ -27,13 +27,13 @@ install(EXPORT ${PROJECT_NAME}Config DESTINATION share/${PROJECT_NAME}/cmake)
 export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
 
 add_executable(
-  tokenizer_test
-  tests/tokenizer_test.cc
+  predictor_test
+  tests/predictor_test.cc
 )
 
 target_link_libraries(
-  tokenizer_test
+  predictor
   LINK_PUBLIC ${Boost_LIBRARIES}
   ${PROJECT_NAME}
-  corpus
+  tokenizer
 )
