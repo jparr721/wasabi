@@ -7,7 +7,8 @@
 	"settings": {
 		"files.associations": {
 			"optional": "cpp",
-			"functional": "cpp"
+			"functional": "cpp",
+			"string": "cpp"
 		}
 	}
 }
