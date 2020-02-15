@@ -12,13 +12,10 @@ using edge_map = std::unordered_map<Node, Node, NodeHash>;
 class FSA {
  public:
   FSA();
-  ~FSA();
 
   //==========================================================
   void AddNode(const Node& value, bool start_state, bool end_state);
-
   void AddEdge(const Node& left, const Node& right);
-
   bool Evaluate(const std::string& phrase);
 
   //==========================================================
@@ -28,7 +25,6 @@ class FSA {
   edge_map edges() const { return edges_; }
 
  private:
-  const Node NULL_NODE = Node::newNode("NULL_NODE", false, false);
   //==========================================================
   bool start_set_ = false;
   bool end_set_ = false;

@@ -4,13 +4,6 @@
 
 namespace wasabi {
 struct Node {
-  Node(const std::string& value, bool start_state = false,
-       bool end_state = false) {
-    this->value = value;
-    this->start_state = start_state;
-    this->end_state = end_state;
-  }
-
   bool operator==(const Node& node) const {
     return this->value == node.value && this->start_state == node.start_state &&
            this->end_state == node.end_state;
@@ -22,7 +15,7 @@ struct Node {
 
   static Node newNode(const std::string& value, bool start_state = false,
                       bool end_state = false) {
-    return Node(value, start_state, end_state);
+    return Node{value, start_state, end_state};
   }
 };
 

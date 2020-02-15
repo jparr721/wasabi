@@ -1,14 +1,20 @@
 #define BOOST_TEST_MODULE FstarTests
 #define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
 
-#include <boost/test/unit_test_suite.hpp>
+#include <fstar/fsa.h>
+
+#include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <memory>
 #include <string>
 
-#include "../include/fstar/fsa.h"
+BOOST_AUTO_TEST_CASE(NodeConstructorTest) {
+  const auto node = wasabi::Node::newNode("NULL_NODE", false, false);
+}
 
-BOOST_AUTO_TEST_CASE(ConstructorTest) {
-  const auto f = std::make_shared<wasabi::FSA>();
-  std::cout << std::endl;
+BOOST_AUTO_TEST_CASE(FSAConstructorTest) {
+  const auto fsa = new wasabi::FSA();
+
+  delete fsa;
 }

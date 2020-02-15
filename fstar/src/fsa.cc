@@ -3,6 +3,8 @@
 #include <stdexcept>
 
 namespace wasabi {
+FSA::FSA() {}
+
 void FSA::AddNode(const Node& value, bool start_state = false,
                   bool end_state = false) {
   if (start_state) {
@@ -21,6 +23,7 @@ void FSA::AddNode(const Node& value, bool start_state = false,
     }
   }
 
+  const Node NULL_NODE = Node::newNode("NULL_NODE", false, false);
   edges_.insert(std::make_pair(value, NULL_NODE));
 }
 

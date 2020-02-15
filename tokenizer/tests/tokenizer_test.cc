@@ -1,5 +1,6 @@
 #define BOOST_TEST_MODULE TokenizerTests
 #define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
 
 #include "../include/tokenizer/tokenizer.h"
 
