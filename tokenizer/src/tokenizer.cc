@@ -58,6 +58,7 @@ void Tokenizer::TokenizeToWords() {
 }
 
 void Tokenizer::TokenizeToSentences() {
+  // TODO(jparr721) - Make this a string stream
   std::string sequence = "";
   const std::string unrefined_text = raw_text_->corpus_blob();
   for (size_t i = 0u; i < unrefined_text.length(); ++i) {
