@@ -58,8 +58,7 @@ void Tokenizer::TokenizeToWords() {
 }
 
 void Tokenizer::TokenizeToSentences() {
-  // TODO(jparr721) - Make this a string stream
-  std::string sequence = "";
+  std::ostringstream sequence;
   const std::string unrefined_text = raw_text_->corpus_blob();
   for (size_t i = 0u; i < unrefined_text.length(); ++i) {
     const char c = unrefined_text[i];
@@ -72,15 +71,17 @@ void Tokenizer::TokenizeToSentences() {
       }
 
       // Otherwise, add period, and cut string
-      sequence += c;
-      tokens_.push_back(sequence);
-      sequence = "";
+      sequence << c;
+      tokens_.push_back(sequence.str());
+      sequence.str("");
+      sequence.clear();
     } else if (c == '\n') {
-      sequence += c;
-      tokens_.push_back(sequence);
-      sequence = "";
+      sequence << c;
+      tokens_.push_back(sequence.str());
+      sequence.str("");
+      sequence.clear();
     } else {
-      sequence += c;
+      sequence << c;
     }
   }
 }

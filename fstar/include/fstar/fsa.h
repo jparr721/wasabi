@@ -8,28 +8,26 @@
 #include <vector>
 
 namespace wasabi {
-using edge_map = std::unordered_map<Node, Node, NodeHash>;
+using edge_map = std::unordered_map<Node, std::vector<Node>, NodeHash>;
 class FSA {
  public:
   FSA();
 
   //==========================================================
   // These help with reading code without signatures
-  constexpr static bool kStartNodeTrue = true;
-  constexpr static bool kStartNodeFalse = false;
-  constexpr static bool kEndNodeTrue = true;
-  constexpr static bool kEndNodeFalse = false;
+  constexpr static bool kNodeTrue = true;
+  constexpr static bool kNodeFalse = false;
 
   // Public Utility Nodes ====================================
   const Node NULL_NODE =
-      Node::newNode("NULL_NODE", kStartNodeFalse, kEndNodeFalse);
+      Node::newNode("NULL_NODE", kNodeFalse, kNodeFalse, kNodeFalse);
   const Node ERROR_NODE =
-      Node::newNode("ERROR_NODE", kStartNodeFalse, kEndNodeTrue);
+      Node::newNode("ERROR_NODE", kNodeFalse, kNodeTrue, kNodeFalse);
 
   //==========================================================
   void AddNode(const Node& value);
   void AddEdge(const Node& left, const Node& right);
-  void CompileFSA(bool drop_orphans);
+  void CompileFSA();
   Node DeterminsticEvaluation(const std::vector<std::string>& phrase);
   Node NonDeterministicEvaluation(const std::vector<std::string>& phrase);
 
@@ -44,19 +42,25 @@ class FSA {
 
  private:
   //==========================================================
+  // State-aware configs
   bool start_set_ = false;
   bool end_set_ = false;
   bool error_set_ = false;
+  bool e_state_set_ = false;
   bool is_deterministic_ = true;
   bool is_compiled_ = false;
 
   //==========================================================
   Node start_state_;
   std::vector<Node> end_states_;
+  std::vector<Node> e_state_nodes_;
   std::vector<Node> non_deterministic_nodes_;
 
   //==========================================================
   edge_map edges_;
+
+  //==========================================================
+  void HasEdge(const Node& left, const Node& right);
 
   // TODO(jparr721) - Add this to utils module...
   //==========================================================
@@ -69,10 +73,12 @@ class FSA {
     return false;
   }
 
-  template <typename Iter>
-  Node node_find(Iter it, Iter end, const std::string& value) const {
-    for (; it != end; ++it) {
-      if (std::get<0>(*it).value == value) return std::get<0>(*it);
+  Node node_find(const std::vector<Node>& nodes,
+                 const std::string& value) const {
+    for (const auto& node : nodes) {
+      if (node.value == value) {
+        return node;
+      }
     }
 
     return ERROR_NODE;

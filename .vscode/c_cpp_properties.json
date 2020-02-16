@@ -4,6 +4,7 @@
             "name": "Linux",
             "compileCommands": "${workspaceFolder}/build/compile_commands.json",
             "includePath": [
+                "${workspaceFolder}/threading/include/threading/pool.h",
                 "${workspaceFolder}/fstar/include/fstar/node.h",
                 "${workspaceFolder}/fstar/include/fstar/fsa.h",
                 "${workspaceFolder}/tokenizer/include/tokenizer/tokenizer.h",
