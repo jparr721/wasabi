@@ -20,18 +20,18 @@ CMake supports out of source builds, so we can make a build directory you may al
 ```
 mkdir build
 cd build
-cmake -GNinja ..
-make
+cmake -GNinja -RelWithDebInfo ..
+ninja
 ```
 
 If you want to install (not recommended until release is ready)
 ```
-make install
+ninja install
 ```
 
 To run the tests:
 ```
-cd build/bin
+cd build/bin/bin
 ./executable_name
 ```
 
