@@ -4,9 +4,9 @@
 #include <functional>
 #include <future>
 #include <iterator>
+#include <memory>
 #include <mutex>
 #include <queue>
-#include <stdexcept>
 #include <thread>
 #include <type_traits>
 #include <vector>
@@ -15,20 +15,19 @@ namespace wasabi {
 class Pool {
  public:
   Pool(size_t pool_size) : num_threads_(pool_size), stop(false) {
-    for (size_t i = 0; i < this->num_threads_; ++i) {
-      this->workers.emplace_back([this] {
+    for (size_t i = 0; i < num_threads_; ++i) {
+      workers.emplace_back([this] {
         for (;;) {
-          std::function<void> task;
+          std::function<void()> task;
           {
-            std::unique_lock<std::mutex> lock(this->queue_mutex);
-            this->condition.wait(
-                lock, [this] { return this->stop || !this->tasks.empty() });
-            if (this->stop && this->tasks.empty()) {
+            std::unique_lock<std::mutex> lock(queue_mutex);
+            condition.wait(lock, [this] { return stop || !tasks.empty(); });
+            if (stop || tasks.empty()) {
               return;
             }
 
-            task = std::move(this->tasks.front());
-            this->tasks.pop();
+            task = std::move(tasks.front());
+            tasks.pop();
           }
 
           task();
@@ -39,12 +38,12 @@ class Pool {
   ~Pool() {
     {
       std::unique_lock<std::mutex> lock(queue_mutex);
-      this->stop = true;
+      stop = true;
     }
 
     condition.notify_all();
 
-    for (auto& thread : this->workers) {
+    for (auto& thread : workers) {
       thread.join();
     }
   }
@@ -53,7 +52,7 @@ class Pool {
   template <class F, class... Args>
   inline std::future<typename std::result_of<F(Args...)>::type> AddJob(
       F&& f, Args&&... args) {
-    auto task = std::make_shared<
+    auto task = std::make_unique<
         std::packaged_task<typename std::result_of<F(Args...)>::type()>>(
         std::bind(std::forward<F>(f), std::forward<Args>(args)...));
 
@@ -61,10 +60,6 @@ class Pool {
         task->get_future();
     {
       std::unique_lock<std::mutex> lock(queue_mutex);
-
-      if (stop) {
-        throw std::runtime_error("Cannot add job to stopped queue");
-      }
 
       tasks.emplace([task]() { (*task)(); });
     }

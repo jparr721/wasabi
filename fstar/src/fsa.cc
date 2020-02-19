@@ -1,4 +1,5 @@
 #include <fstar/fsa.h>
+#include <threading/pool.h>
 
 #include <algorithm>
 #include <cassert>
