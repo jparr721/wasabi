@@ -1,17 +1,93 @@
 #include <tokenizer/tokenizer.h>
 
 #include <algorithm>
+#include <cctype>
 #include <iterator>
+#include <locale>
 #include <sstream>
 
 namespace wasabi {
-
 //==========================================================
-void Tokenizer::AssertBuildProcedure() const {
-  assert(tokenized_);
-  assert(!stemmed_);
+void Tokenizer::DeepClean(std::string& word_or_sentence) {
+  Rstrip(word_or_sentence);
+  Pstrip(word_or_sentence);
+  Bstrip(word_or_sentence);
+  Nstrip(word_or_sentence);
+  AsLower(word_or_sentence);
 }
 
+// TODO(jparr721) - Make this smarter.... much smarter
+void Tokenizer::TokenizeToWords(std::string& sentence) {
+  std::stringstream iss(sentence);
+
+  std::vector tok(std::istream_iterator<std::string>{iss},
+                  std::istream_iterator<std::string>());
+}
+
+void Tokenizer::Rstrip(std::string& word_or_sentence) {
+  word_or_sentence.erase(
+      std::remove_if(word_or_sentence.begin(), word_or_sentence.end(),
+                     [](unsigned char x) { return std::isspace(x); }),
+      word_or_sentence.end());
+}
+
+void Tokenizer::Pstrip(std::string& word_or_sentence) {
+  word_or_sentence.erase(
+      std::remove_if(word_or_sentence.begin(), word_or_sentence.end(),
+                     [](unsigned char x) { return std::ispunct(x); }),
+      word_or_sentence.end());
+}
+
+void Tokenizer::Bstrip(std::string& word_or_sentence) {
+  word_or_sentence.erase(
+      std::remove_if(word_or_sentence.begin(), word_or_sentence.end(),
+                     [](unsigned char x) { return std::isblank(x); }),
+      word_or_sentence.end());
+}
+
+void Tokenizer::Nstrip(std::string& word_or_sentence) {
+  word_or_sentence.erase(
+      std::remove_if(word_or_sentence.begin(), word_or_sentence.end(),
+                     [](unsigned char x) { return std::isdigit(x); }),
+      word_or_sentence.end());
+}
+
+void Tokenizer::AsLower(std::string& word) {
+  std::transform(word.begin(), word.end(), word.begin(),
+                 [](unsigned char x) { return std::tolower(x); });
+}
+
+//==========================================================
+void Tokenizer::TokenizeToSentences(const std::string& blob,
+                                    std::vector<std::string>& output,
+                                    bool add_punct) {
+  std::ostringstream sequence;
+  for (size_t i = 0u; i < blob.length(); ++i) {
+    const char c = blob[i];
+
+    if (c == '.') {
+      // Check for ellipsis
+      if (i + 2 < blob.length() && blob[i + 1] == '.' && blob[i + 2] == '.') {
+        continue;
+      }
+
+      // Otherwise, add period and cut string
+      sequence << c;
+      output.push_back(sequence.str());
+      sequence.str("");
+      sequence.clear();
+    } else if (c == '\n') {
+      sequence << c;
+      output.push_back(sequence.str());
+      sequence.str("");
+      sequence.clear();
+    } else {
+      sequence << c;
+    }
+  }
+}
+
+//==========================================================
 bool Tokenizer::StringEndsWith(const std::string& word,
                                const std::string& end) const {
   assert(word.size() > end.size());
@@ -39,57 +115,7 @@ bool Tokenizer::StringStartsWith(const std::string& word,
 }
 
 //==========================================================
-void Tokenizer::Tokenize() {
-  if (type_ == TokenizerType::words) {
-    TokenizeToWords();
-  } else if (type_ == TokenizerType::sentences) {
-    TokenizeToSentences();
-  }
-}
-
-void Tokenizer::TokenizeToWords() {
-  std::stringstream iss(raw_text_->corpus_blob());
-
-  std::vector tok(std::istream_iterator<std::string>{iss},
-                  std::istream_iterator<std::string>());
-
-  tokens_ = tok;
-  tokenized_ = true;
-}
-
-void Tokenizer::TokenizeToSentences() {
-  std::ostringstream sequence;
-  const std::string unrefined_text = raw_text_->corpus_blob();
-  for (size_t i = 0u; i < unrefined_text.length(); ++i) {
-    const char c = unrefined_text[i];
-
-    if (c == '.') {
-      // Check for ellipsis
-      if (i + 2 < unrefined_text.length() && unrefined_text[i + 1] == '.' &&
-          unrefined_text[i + 2] == '.') {
-        continue;
-      }
-
-      // Otherwise, add period, and cut string
-      sequence << c;
-      tokens_.push_back(sequence.str());
-      sequence.str("");
-      sequence.clear();
-    } else if (c == '\n') {
-      sequence << c;
-      tokens_.push_back(sequence.str());
-      sequence.str("");
-      sequence.clear();
-    } else {
-      sequence << c;
-    }
-  }
-}
-
-//==========================================================
 void Tokenizer::PorterStemmer(std::string& word) {
-  AssertBuildProcedure();
-
   std::transform(word.begin(), word.end(), word.begin(), ::tolower);
 
   const auto irregular_form_found = irregular_forms.find(word);

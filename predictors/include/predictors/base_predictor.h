@@ -17,17 +17,14 @@ class BasePredictor {
 
   //==========================================================
   virtual void Fit() = 0;
-  virtual Parameters Parameters() { return model_parameters_; }
+  virtual Parameters model_parameters() { return model_parameters_; }
 
   //==========================================================
   bool is_init() const { return is_init_; }
 
- private:
+ protected:
   //==========================================================
   std::unique_ptr<Parameters> model_parameters_;
   const std::shared_ptr<Tokenizer> tokenizer_;
-
-  //==========================================================
-  bool it_init_ = false;
 }
 }  // namespace wasabi

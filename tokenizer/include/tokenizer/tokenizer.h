@@ -12,34 +12,33 @@
 #include <vector>
 
 namespace wasabi {
-enum class TokenizerType { words, sentences };
-enum class StemmerType { porter, snowball };
 using rule = std::tuple<const std::string&, const std::string&,
                         std::function<bool(const std::string&)>>;
 using rule_list = std::vector<rule>;
 
 class Tokenizer {
  public:
-  Tokenizer(const std::shared_ptr<Corpus>& raw_text, TokenizerType type)
-      : raw_text_(raw_text), type_(type){};
+  Tokenizer();
 
   //==========================================================
-  void Tokenize();
-  void Stem(const StemmerType stemmer_type);
+  void TokenizeToWords(std::string& sentence);
+  void TokenizeToSentences(const std::string& blob,
+                           std::vector<std::string>& output,
+                           bool add_punct = false);
+  void DeepClean(std::string& word_or_sentence);
+  void Rstrip(std::string& word_or_sentence);
+  void Pstrip(std::string& word_or_sentence);
+  void Bstrip(std::string& word_or_sentence);
+  void Nstrip(std::string& word_or_sentence);
+  void AsLower(std::string& word);
+
+  //==========================================================
+  bool StringEndsWith(const std::string& word, const std::string& end) const;
+  bool StringStartsWith(const std::string& word,
+                        const std::string& start) const;
 
   //==========================================================
   const std::array<std::string, 127> stopwords() const;
-
-  //==========================================================
-  const std::vector<std::string> tokenized() const { return tokens_; }
-  const TokenizerType type() const { return type_; }
-  const bool is_tokenized_() const { return tokenized_; }
-  const bool is_stemmed() const { return stemmed_; }
-
-  //==========================================================
-  void AssertBuildProcedure() const;
-
-  // A few nice utilities...
   template <typename Iter, typename T>
   bool is_in(Iter it, Iter end, T value) const {
     for (; it != end; ++it) {
@@ -48,17 +47,11 @@ class Tokenizer {
 
     return false;
   }
-  bool StringEndsWith(const std::string& word, const std::string& end) const;
-  bool StringStartsWith(const std::string& word,
-                        const std::string& start) const;
   //==========================================================
 
  private:
   static constexpr int stopwords_count = 127;
   static constexpr std::array<const char, 5> vowels{'a', 'e', 'i', 'o', 'u'};
-  static constexpr std::array<const char, 26> punctuation{
-      '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', ' ',
-      '-', '.', '/', ':', ';', '<', '=',  '>', '?', '@', '^', '`', '~'};
   const std::unordered_map<std::string, std::vector<std::string>>
       irregular_forms{
           {"sky", std::vector<std::string>{"sky", "skies"}},
@@ -74,24 +67,6 @@ class Tokenizer {
           {"exceed", std::vector<std::string>{"exceed"}},
           {"succeed", std::vector<std::string>{"succeed"}},
       };
-
-  //==========================================================
-  bool tokenized_;
-  bool stemmed_;
-
-  //==========================================================
-  const TokenizerType type_;
-  std::vector<std::string> tokens_;
-
-  //==========================================================
-  const std::shared_ptr<Corpus> raw_text_;
-
-  //==========================================================
-  void TokenizeToWords();
-  void TokenizeToSentences();
-
-  //==========================================================
-  void SnowballStemmer();
 
   //==========================================================
   // Porter Stemmer functions

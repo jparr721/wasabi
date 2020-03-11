@@ -17,17 +17,18 @@ BOOST_AUTO_TEST_CASE(WordTokenize) {
 
   c->Ingest();
 
-  auto t = std::make_shared<wasabi::Tokenizer>(c, wasabi::TokenizerType::words);
+  /* auto t = std::make_shared<wasabi::Tokenizer>(c,
+   * wasabi::TokenizerType::words); */
 
-  t->Tokenize();
+  /* t->Tokenize(); */
 
-  auto output = t->tokenized();
+  /* auto output = t->tokenized(); */
 
-  for (const auto v : output) {
-    std::cout << v << ", ";
-  }
+  /* for (const auto v : output) { */
+  /*   std::cout << v << ", "; */
+  /* } */
 
-  std::cout << std::endl;
+  /* std::cout << std::endl; */
 }
 
 BOOST_AUTO_TEST_CASE(SentnceTokenize) {
@@ -37,16 +38,17 @@ BOOST_AUTO_TEST_CASE(SentnceTokenize) {
 
   c->Ingest();
 
-  auto t =
-      std::make_shared<wasabi::Tokenizer>(c, wasabi::TokenizerType::sentences);
+  /* auto t = */
+  /*     std::make_shared<wasabi::Tokenizer>(c,
+   * wasabi::TokenizerType::sentences); */
 
-  t->Tokenize();
+  /* t->Tokenize(); */
 
-  auto output = t->tokenized();
+  /* auto output = t->tokenized(); */
 
-  for (const auto& v : output) {
-    std::cout << v << ", ";
-  }
+  /* for (const auto& v : output) { */
+  /*   std::cout << v << ", "; */
+  /* } */
 
-  std::cout << std::endl;
+  /* std::cout << std::endl; */
 }
