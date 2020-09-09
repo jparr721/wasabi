@@ -66,13 +66,16 @@ void Tokenizer::TokenizeToSentences(const std::string& blob,
     const char c = blob[i];
 
     if (c == '.') {
-      // Check for ellipsis
+      // Check for ellipsis (two)
+      if (i + 1 < blob.length() && blob[i + 1] == '.') {
+        continue;
+      }
+      // Check for ellipsis (three)
       if (i + 2 < blob.length() && blob[i + 1] == '.' && blob[i + 2] == '.') {
         continue;
       }
 
-      // Otherwise, add period and cut string
-      sequence << c;
+      // Otherwise, end sentence without punctuation
       output.push_back(sequence.str());
       sequence.str("");
       sequence.clear();
