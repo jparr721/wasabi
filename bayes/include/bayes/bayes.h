@@ -1,24 +1,26 @@
 #pragma once
 
-#include<filesystem>
-#include <pair>
+#include <filesystem>
 #include <string>
+#include <string_view>
 #include <unordered_map>
+#include <utility>
 
 using parameter_map = std::unordered_map<std::string_view, long double>;
 
 class BayesianLanguageModel {
-  public:
-    BayesianLanguageModel() = default;
+ public:
+  BayesianLanguageModel() = default;
 
-    void Train(const std::filesystem::path& training_csv);
-    void Test();
+  void Train(const std::filesystem::path& training_csv);
+  void Test();
 
-    double Evaluate(const std::string& input):
+  double Evaluate(const std::string& input)
+      :
 
-    std::pair<double, double> accuracy_score();
-    std::pair<double, double> prior_probability();
+        std::pair<double, double> accuracy_score();
+  std::pair<double, double> prior_probability();
 
-  private:
-    parameter_map parameters;
+ private:
+  parameter_map parameters;
 };
