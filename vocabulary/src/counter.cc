@@ -4,16 +4,16 @@
 
 namespace wasabi {
 Counter::Counter(const std::vector<std::string>& text_sequence) {
-  for (const auto token : text_sequence) {
-    const auto token_exists = counts.find(token);
+  AppendSequence(text_sequence);
+}
 
-    if (token_exists == counts.end()) {
-      counts[token] = 1;
-    } else {
-      ++counts[token];
-    }
+void Counter::AppendSequence(const std::vector<std::string>& text_sequence) {
+  for (const auto token : text_sequence) {
+    ++counts[token];
   }
 }
+
+void Counter::Increment(const std::string& key) { ++counts[key]; }
 
 void Counter::TopN(int n,
                    std::vector<std::pair<std::string, unsigned>>& results) {
@@ -24,5 +24,4 @@ void Counter::TopN(int n,
                            return lhs.second > rhs.second;
                          });
 }
-
 }  // namespace wasabi

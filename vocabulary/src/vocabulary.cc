@@ -2,6 +2,7 @@
 
 namespace wasabi {
 void Vocabulary::AddToken(const std::string& token) {
+  token_counts.Increment(token);
   const auto token_exists = token_to_index_.find(token);
 
   if (token_exists == token_to_index_.end()) {

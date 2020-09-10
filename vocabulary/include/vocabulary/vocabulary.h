@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vocabulary/counter.h>
+
 #include <optional>
 #include <sstream>
 #include <string>
@@ -45,5 +47,6 @@ class Vocabulary {
 
   std::unordered_map<std::string, int> token_to_index_;
   std::unordered_map<int, std::string> index_to_token_;
+  Counter token_counts;
 };
 }  // namespace wasabi

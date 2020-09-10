@@ -11,6 +11,11 @@ target_include_directories(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+target_link_libraries(${PROJECT_NAME}
+  vocabulary
+  tokenizer
+)
+
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Config
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -20,3 +25,14 @@ install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Config
 install(DIRECTORY include/ DESTINATION "${INSTALL_INCLUDE_DIR}")
 install(EXPORT ${PROJECT_NAME}Config DESTINATION share/${PROJECT_NAME}/cmake)
 export(TARGETS ${PROJECT_NAME} FILE ${PROJECT_NAME}Config.cmake)
+
+add_executable(
+  bayes_test
+  tests/bayes_test.cc
+)
+
+target_link_libraries(
+  bayes_test
+  LINK_PUBLIC ${Boost_LIBRARIES}
+  ${PROJECT_NAME}
+)

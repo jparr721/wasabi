@@ -16,14 +16,6 @@ void Tokenizer::DeepClean(std::string& word_or_sentence) {
   AsLower(word_or_sentence);
 }
 
-// TODO(jparr721) - Make this smarter.... much smarter
-void Tokenizer::TokenizeToWords(std::string& sentence) {
-  std::stringstream iss(sentence);
-
-  std::vector tok(std::istream_iterator<std::string>{iss},
-                  std::istream_iterator<std::string>());
-}
-
 void Tokenizer::Rstrip(std::string& word_or_sentence) {
   word_or_sentence.erase(
       std::remove_if(word_or_sentence.begin(), word_or_sentence.end(),
@@ -58,6 +50,16 @@ void Tokenizer::AsLower(std::string& word) {
 }
 
 //==========================================================
+// TODO(jparr721) - Make this smarter.... much smarter
+void Tokenizer::TokenizeToWords(const std::string& sentence,
+                                std::vector<std::string>& output) {
+  std::stringstream iss(sentence);
+
+  std::vector tok(std::istream_iterator<std::string>{iss},
+                  std::istream_iterator<std::string>());
+  output = tok;
+}
+
 void Tokenizer::TokenizeToSentences(const std::string& blob,
                                     std::vector<std::string>& output,
                                     bool add_punct) {
@@ -93,7 +95,9 @@ void Tokenizer::TokenizeToSentences(const std::string& blob,
 //==========================================================
 bool Tokenizer::StringEndsWith(const std::string& word,
                                const std::string& end) const {
-  assert(word.size() > end.size());
+  if (word.size() > end.size()) {
+    return false;
+  }
 
   for (size_t i = word.size() - end.size(), j = 0; i < word.size(); ++i, ++j) {
     if (word.at(i) != end.at(j)) {
@@ -106,7 +110,9 @@ bool Tokenizer::StringEndsWith(const std::string& word,
 
 bool Tokenizer::StringStartsWith(const std::string& word,
                                  const std::string& start) const {
-  assert(word.size() > start.size());
+  if (word.size() > start.size()) {
+    return false;
+  }
 
   for (size_t i = 0; i < start.size(); ++i) {
     if (word.at(i) != start.at(i)) {

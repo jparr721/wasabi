@@ -18,10 +18,11 @@ using rule_list = std::vector<rule>;
 
 class Tokenizer {
  public:
-  Tokenizer();
+  Tokenizer() = default;
 
   //==========================================================
-  void TokenizeToWords(std::string& sentence);
+  void TokenizeToWords(const std::string& sentence,
+                       std::vector<std::string>& output);
   void TokenizeToSentences(const std::string& blob,
                            std::vector<std::string>& output,
                            bool add_punct = false);
@@ -31,6 +32,7 @@ class Tokenizer {
   void Bstrip(std::string& word_or_sentence);
   void Nstrip(std::string& word_or_sentence);
   void AsLower(std::string& word);
+  void PorterStemmer(std::string& word);
 
   //==========================================================
   bool StringEndsWith(const std::string& word, const std::string& end) const;
@@ -70,7 +72,6 @@ class Tokenizer {
 
   //==========================================================
   // Porter Stemmer functions
-  void PorterStemmer(std::string& word);
   void ReplaceSuffix(std::string& word, const std::string& suffix,
                      const std::string& replacement);
   void ApplyRuleToList(std::string& word, const rule_list& rules);
