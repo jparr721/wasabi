@@ -8,11 +8,12 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
 namespace wasabi {
-using rule = std::tuple<const std::string&, const std::string&,
+using rule = std::tuple<std::string_view, std::string_view,
                         std::function<bool(const std::string&)>>;
 using rule_list = std::vector<rule>;
 

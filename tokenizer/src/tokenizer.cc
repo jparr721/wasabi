@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <iostream>
 #include <iterator>
 #include <locale>
 #include <sstream>
@@ -95,7 +96,7 @@ void Tokenizer::TokenizeToSentences(const std::string& blob,
 //==========================================================
 bool Tokenizer::StringEndsWith(const std::string& word,
                                const std::string& end) const {
-  if (word.size() > end.size()) {
+  if (word.size() < end.size()) {
     return false;
   }
 
@@ -332,16 +333,19 @@ void Tokenizer::ApplyRuleToList(std::string& word, const rule_list& rules) {
  *      S    ->                            cats      ->  cat
  **/
 void Tokenizer::Step1a(std::string& word) {
+  std::cout << "Step 1a" << std::endl;
   if (StringEndsWith(word, "ies")) {
     ReplaceSuffix(word, "ies", "ie");
     return;
   }
 
+  const auto true_lambda = [](const std::string& _) -> bool { return true; };
+
   const rule_list rules{
-      std::make_tuple("sses", "ss", nullptr),  // SSES -> SS
-      std::make_tuple("ies", "i", nullptr),    // IES -> i
-      std::make_tuple("ss", "ss", nullptr),    // SS -> SS
-      std::make_tuple("s", "", nullptr),       // S -> ""
+      std::make_tuple("sses", "ss", true_lambda),  // SSES -> SS
+      std::make_tuple("ies", "i", true_lambda),    // IES -> i
+      std::make_tuple("ss", "ss", true_lambda),    // SS -> SS
+      std::make_tuple("s", "", true_lambda),       // S -> ""
   };
 
   ApplyRuleToList(word, rules);
@@ -376,6 +380,7 @@ void Tokenizer::Step1a(std::string& word) {
  *   later. This E may be removed in step 4.
  */
 void Tokenizer::Step1b(std::string& word) {
+  std::cout << "Step 1b" << std::endl;
   if (StringEndsWith(word, "ied")) {
     if (word.size() == 4) {
       ReplaceSuffix(word, "ied", "ie");
